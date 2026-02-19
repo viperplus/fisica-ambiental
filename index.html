@@ -8,6 +8,87 @@
         function guardarTrabajo() {
             window.print();
         }
+
+        var voice = null;
+        var speaking = false;
+
+        function initVoices() {
+            var voices = speechSynthesis.getVoices();
+            if (voices.length) {
+                voice = voices.find(function(v) { return v.lang.includes('es'); }) || voices[0];
+            } else {
+                speechSynthesis.onvoiceschanged = function() {
+                    voices = speechSynthesis.getVoices();
+                    voice = voices.find(function(v) { return v.lang.includes('es'); }) || voices[0];
+                };
+            }
+        }
+
+        initVoices();
+
+        function hablar(texto, btn) {
+            if (speaking) {
+                speechSynthesis.cancel();
+            }
+
+            texto = texto.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+            if (!texto) return;
+
+            var utterance = new SpeechSynthesisUtterance(texto);
+            utterance.lang = 'es-ES';
+            utterance.voice = voice;
+            utterance.rate = 0.85;
+
+            utterance.onstart = function() {
+                speaking = true;
+            };
+
+            utterance.onend = function() {
+                speaking = false;
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+
+        function leerEnunciado(btn) {
+            var enunciado = btn.parentElement.querySelector('span');
+            if (enunciado) {
+                hablar(enunciado.innerText, btn);
+            }
+        }
+
+        function leerOpcion(btn) {
+            var opcion = btn.parentElement.querySelector('.OPCION-TEXTO');
+            if (opcion) {
+                hablar(opcion.innerText, btn);
+            }
+        }
+
+        function leerSeccion(btn) {
+            var h2 = btn.previousElementSibling;
+            var contenido = '';
+            
+            while (h2) {
+                contenido += h2.innerText + ' ';
+                var siguiente = h2.nextElementSibling;
+                while (siguiente && siguiente.tagName !== 'H2' && siguiente.tagName !== 'H1') {
+                    if (siguiente.tagName === 'DIV' || siguiente.tagName === 'P' || siguiente.tagName === 'TABLE') {
+                        contenido += siguiente.innerText + ' ';
+                    }
+                    siguiente = siguiente.nextElementSibling;
+                }
+                if (siguiente && siguiente.tagName === 'H2') {
+                    h2 = siguiente;
+                    break;
+                }
+                break;
+            }
+            
+            contenido = contenido.replace(/🔊/g, '').replace(/LEER SECCIÓN/g, '').replace(/LEER/g, '').replace(/,/g, '').trim();
+            if (contenido) {
+                hablar(contenido);
+            }
+        }
     </SCRIPT>
     <STYLE>
         BODY {
@@ -141,6 +222,45 @@
 
         @MEDIA PRINT {
             .BOTON-PDF { DISPLAY: NONE; }
+            .BOTON-LEER { DISPLAY: NONE; }
+            .BOTON-SECCION { DISPLAY: NONE; }
+        }
+
+        .BOTON-LEER {
+            BACKGROUND: #1565C0;
+            COLOR: WHITE;
+            BORDER: NONE;
+            PADDING: 5PX 10PX;
+            BORDER-RADIUS: 15PX;
+            CURSOR: POINTER;
+            FONT-SIZE: 0.7EM;
+            MARGIN-LEFT: 10PX;
+        }
+
+        .BOTON-LEER:HOVER {
+            BACKGROUND: #0D47A1;
+        }
+
+        .BOTON-SECCION {
+            BACKGROUND: #2E7D32;
+            COLOR: WHITE;
+            BORDER: NONE;
+            PADDING: 8PX 15PX;
+            BORDER-RADIUS: 20PX;
+            CURSOR: POINTER;
+            FONT-SIZE: 0.85EM;
+            MARGIN-BOTTOM: 15PX;
+        }
+
+        .BOTON-SECCION:HOVER {
+            BACKGROUND: #1B5E20;
+        }
+
+        .ENUNCIADO {
+            FONT-WEIGHT: BOLD;
+            MARGIN-BOTTOM: 15PX;
+            DISPLAY: FLEX;
+            ALIGN-ITEMS: CENTER;
         }
     </STYLE>
 </HEAD>
@@ -152,9 +272,14 @@
         <P><STRONG>¡HOLA A TODOS Y TODAS! BIENVENIDOS A ESTA NUEVA ETAPA.</STRONG></P>
         <P>LA <STRONG>FÍSICA AMBIENTAL</STRONG> ES LA CIENCIA QUE ESTUDIA CÓMO FUNCIONA NUESTRO PLANETA DESDE EL PUNTO DE VISTA DE LA ENERGÍA Y LA MATERIA. ANALIZAMOS DESDE EL CALOR DEL SOL HASTA CÓMO SE MUEVE EL AGUA Y CÓMO AFECTA ESTO A LA VIDA.</P>
         <P>ESTA ACTIVIDAD NOS AYUDARÁ A VER CUÁNTO SABEMOS SOBRE EL MUNDO QUE NOS RODEA ANTES DE EMPEZAR CON TEMAS NUEVOS.</P>
+        <BUTTON CLASS="BOTON-LEER" onclick="hablar(this.parentElement.innerText)">🔊 LEER</BUTTON>
     </DIV>
 
     <H2>1. LA ENERGÍA Y EL CALOR</H2>
+    <BUTTON CLASS="BOTON-SECCION" onclick="leerSeccion(this)">🔊 LEER SECCIÓN</BUTTON>
+    <DIV CLASS="CUADRO-INFO" STYLE="BACKGROUND: #FFF8E1; BORDER-LEFT-COLOR: #FF8F00;">
+        <P><STRONG>INTRODUCCIÓN:</STRONG> EL SOL ENVÍA ENERGÍA A LA TIERRA. CUANDO ESA ENERGÍA LLEGA A LOS OBJETOS, SE TRANSFORMA EN CALOR Y HACE QUE LAS PARTÍCULAS SE MUEVAN MÁS RÁPIDO. ESTO ES LO QUE LLAMAMOS TEMPERATURA. CUANDO DOS COSAS TIENEN DIFERENTE TEMPERATURA, EL CALOR PASA DE LA MÁS CALIENTE A LA MÁS FRÍA.</P>
+    </DIV>
     <DIV CLASS="CUADRO-INFO">
         <P><STRONG>CASO:</STRONG> DOS PALAS DE METAL IGUALES. UNA ESTÁ A LA SOMBRA Y SE SIENTE FRÍA; LA OTRA ESTUVO AL SOL Y QUEMA AL TOCARLA.</P>
     </DIV>
@@ -176,19 +301,26 @@
         <DIV CLASS="PREGUNTA-BLOQUE">
             <DIV CLASS="ENUNCIADO">
                 <SPAN>¿EN CUÁL DE LAS PALAS LOS ÁTOMOS VIBRAN MÁS RÁPIDO?</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerEnunciado(this)">🔊</BUTTON>
             </DIV>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P1">
                 <SPAN CLASS="OPCION-TEXTO">EN LA PALA FRÍA (A LA SOMBRA).</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P1">
                 <SPAN CLASS="OPCION-TEXTO">EN LA PALA CALIENTE (AL SOL).</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
         </DIV>
     </DIV>
 
     <H2>2. EL CICLO DEL AGUA</H2>
+    <BUTTON CLASS="BOTON-SECCION" onclick="leerSeccion(this)">🔊 LEER SECCIÓN</BUTTON>
+    <DIV CLASS="CUADRO-INFO" STYLE="BACKGROUND: #FFF8E1; BORDER-LEFT-COLOR: #FF8F00;">
+        <P><STRONG>INTRODUCCIÓN:</STRONG> EL AGUA SE MUEVE CONSTANTEMENTE POR TODO EL PLANETA. EL SOL CALIENTA EL AGUA DE LOS MARES Y RÍOS, Y ESTE SUBE AL AIRE (EVAPORACIÓN). LUEGO EL AGUA VUELVE A CAER EN FORMA DE LLUVIA O NIEVE (PRECIPITACIÓN). ESTE ES EL CICLO DEL AGUA. GRACIAS A ESTE CICLO, EL AGUA SE DISTRIBUYE POR TODA LA TIERRA.</P>
+    </DIV>
     <DIV CLASS="ZONA-IMAGEN">
         <IMG SRC="https://i.imgur.com/IC5L3qm.png" ALT="ESQUEMA CICLO DEL AGUA">
     </DIV>
@@ -196,19 +328,26 @@
         <DIV CLASS="PREGUNTA-BLOQUE">
             <DIV CLASS="ENUNCIADO">
                 <SPAN>¿QU&Eacute; PROCESO OCURRE CUANDO EL SOL CALIENTA EL AGUA Y ESTA SUBE?</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerEnunciado(this)">🔊</BUTTON>
             </DIV>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P2">
                 <SPAN CLASS="OPCION-TEXTO">EVAPORACI&Oacute;N.</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P2">
                 <SPAN CLASS="OPCION-TEXTO">PRECIPITACI&Oacute;N (LLUVIA).</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
         </DIV>
     </DIV>
 
     <H2>3. ENERGÍA EN EL CUERPO HUMANO</H2>
+    <BUTTON CLASS="BOTON-SECCION" onclick="leerSeccion(this)">🔊 LEER SECCIÓN</BUTTON>
+    <DIV CLASS="CUADRO-INFO" STYLE="BACKGROUND: #FFF8E1; BORDER-LEFT-COLOR: #FF8F00;">
+        <P><STRONG>INTRODUCCIÓN:</STRONG> NUESTRO CUERPO NECESITA ENERGÍA PARA MOVERSE Y MANTENERNOS CALIENTES. ESA ENERGÍA VIENE DE LOS ALIMENTOS. CUANDO COMEMOS, NUESTRO CUERPO TRANSFORMA ESA COMIDA EN ENERGÍA. CUANTO MÁS NOS MOVEMOS, MÁS ENERGÍA GASTAMOS. LA ENERGÍA SE MIDE EN CALORÍAS.</P>
+    </DIV>
     <TABLE>
         <TR><TH>ACTIVIDAD (30 MIN)</TH><TH>CALORÍAS GASTADAS</TH></TR>
         <TR><TD>CORRER</TD><TD>300</TD></TR>
@@ -220,19 +359,26 @@
         <DIV CLASS="PREGUNTA-BLOQUE">
             <DIV CLASS="ENUNCIADO">
                 <SPAN>SEG&Uacute;N LA TABLA, &iquest;CU&Aacute;L ES LA ACTIVIDAD QUE M&Aacute;S ENERG&Iacute;A GASTA?</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerEnunciado(this)">🔊</BUTTON>
             </DIV>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P3">
                 <SPAN CLASS="OPCION-TEXTO">CORRER.</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P3">
                 <SPAN CLASS="OPCION-TEXTO">PATINAR.</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
         </DIV>
     </DIV>
 
     <H2>5. EL SISTEMA SOL - TIERRA</H2>
+    <BUTTON CLASS="BOTON-SECCION" onclick="leerSeccion(this)">🔊 LEER SECCIÓN</BUTTON>
+    <DIV CLASS="CUADRO-INFO" STYLE="BACKGROUND: #FFF8E1; BORDER-LEFT-COLOR: #FF8F00;">
+        <P><STRONG>INTRODUCCIÓN:</STRONG> LA TIERRA GIRA CONSTANTEMENTE FRENTE AL SOL. LA PARTE QUE ESTÁ MIRANDO AL SOL TENEMOS DÍA, Y LA PARTE QUE ESTÁ MIRANDO PARA EL OTRO LADO TENEMOS NOCHE. LA TIERRA ESTÁ INCLINADA. POR ESTO EL CALOR DEL SOL NO LLEGA IGUAL A TODOS LOS LUGARES. POR ESO HAY LUGARES MÁS CALIENTES Y OTROS MÁS FRÍOS.</P>
+    </DIV>
     <DIV CLASS="ZONA-IMAGEN">
         <IMG SRC="https://i.imgur.com/VWAyHUf.png" ALT="MODELO LINTERNA Y PELOTA">
     </DIV>
@@ -240,36 +386,44 @@
         <DIV CLASS="PREGUNTA-BLOQUE">
             <DIV CLASS="ENUNCIADO">
                 <SPAN>1. &iquest;CU&Aacute;L SER&Iacute;A LA MEJOR MANERA DE REPRESENTAR EL D&Iacute;A Y LA NOCHE CON ESTE MODELO?</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerEnunciado(this)">🔊</BUTTON>
             </DIV>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P5_1">
                 <SPAN CLASS="OPCION-TEXTO">MOVER LA LINTERNA ALREDEDOR DE LA PELOTA.</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P5_1">
                 <SPAN CLASS="OPCION-TEXTO">ROTAR LA PELOTA SOBRE EL EJE (L&Iacute;NEA DE PUNTOS).</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P5_1">
                 <SPAN CLASS="OPCION-TEXTO">MOVER LA PELOTA ALREDEDOR DE LA LINTERNA.</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P5_1">
                 <SPAN CLASS="OPCION-TEXTO">ENCENDER Y APAGAR LA LINTERNA.</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
         </DIV>
 
         <DIV CLASS="PREGUNTA-BLOQUE">
             <DIV CLASS="ENUNCIADO">
                 <SPAN>2. &iquest;QU&Eacute; REPRESENTA LA L&Iacute;NEA DE PUNTOS QUE SE VE EN LA ILUSTRACI&Oacute;N?</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerEnunciado(this)">🔊</BUTTON>
             </DIV>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P5_2">
                 <SPAN CLASS="OPCION-TEXTO">EL EJE DE ROTACI&Oacute;N DE LA TIERRA.</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
             <LABEL CLASS="OPCION-BOTON">
                 <INPUT TYPE="RADIO" NAME="P5_2">
                 <SPAN CLASS="OPCION-TEXTO">EL ECUADOR.</SPAN>
+                <BUTTON CLASS="BOTON-LEER" onclick="leerOpcion(this)">🔊</BUTTON>
             </LABEL>
         </DIV>
     </DIV>
