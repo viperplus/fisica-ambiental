@@ -5,32 +5,8 @@
     <META NAME="VIEWPORT" CONTENT="WIDTH=DEVICE-WIDTH, INITIAL-SCALE=1.0">
     <TITLE>FÍSICA AMBIENTAL - ACTIVIDADES</TITLE>
     <SCRIPT>
-        function guardarPDF() {
-            var contenido = document.querySelector('.CONTENEDOR').innerHTML;
-            var ventana = window.open('', '_blank');
-            ventana.document.write('<html><head><title>Física Ambiental</title>');
-            ventana.document.write('<style>body{font-family:Verdana;padding:20px;text-transform:uppercase;}');
-            ventana.document.write('h1{color:#2E7D32;border-bottom:4px solid #2E7D32;padding-bottom:15px;}');
-            ventana.document.write('h2{color:#1565C0;background:#E3F2FD;padding:12px;border-radius:10px;margin-top:40px;}');
-            ventana.document.write('.SALUDO-INICIAL{background:#E8F5E9;padding:20px;border-radius:15px;border-left:8px solid #2E7D32;margin-bottom:30px;}');
-            ventana.document.write('.CUADRO-INFO{padding:15px;border-radius:12px;border-left:6px solid #2E7D32;margin:20px 0;font-size:0.9em;}');
-            ventana.document.write('.ZONA-IMAGEN{text-align:center;margin:20px 0;}');
-            ventana.document.write('.ZONA-IMAGEN img{max-width:100%;border-radius:15px;border:4px solid #eee;}');
-            ventana.document.write('.FILA-FOTOS{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin:20px 0;}');
-            ventana.document.write('.MINI-TARJETA{border:2px solid #2E7D32;padding:10px;border-radius:12px;width:180px;text-align:center;background:#F9F9F9;}');
-            ventana.document.write('.MINI-TARJETA img{width:100%;border-radius:8px;}');
-            ventana.document.write('table{width:100%;border-collapse:collapse;margin:20px 0;}');
-            ventana.document.write('th,td{border:2px solid #444;padding:12px;text-align:center;}');
-            ventana.document.write('th{background:#2E7D32;color:white;}');
-            ventana.document.write('.CAJA-AMARILLA{background:#FFF9C4;padding:25px;border-left:10px solid #FBC02D;border-radius:15px;margin-top:25px;}');
-            ventana.document.write('.PREGUNTA-BLOQUE{margin-bottom:25px;padding:15px;background:white;border-radius:10px;}');
-            ventana.document.write('.ENUNCIADO{font-weight:bold;margin-bottom:15px;}');
-            ventana.document.write('.OPCION-BOTON{background:#F5F5F5;margin:8px 0;padding:12px 15px;border-radius:10px;border:2px solid #ddd;font-size:0.9em;}');
-            ventana.document.write('input[type="radio"]{transform:scale(1.4);margin-right:15px;}</style>');
-            ventana.document.write('</head><body>' + contenido + '</body></html>');
-            ventana.document.close();
-            ventana.focus();
-            ventana.print();
+        function guardarTrabajo() {
+            window.print();
         }
     </SCRIPT>
     <STYLE>
@@ -298,7 +274,7 @@
         </DIV>
     </DIV>
 
-    <BUTTON CLASS="BOTON-PDF" TYPE="BUTTON" ONCLICK="guardarPDF()">GUARDAR TRABAJO</BUTTON>
+    <BUTTON CLASS="BOTON-PDF" TYPE="BUTTON" ONCLICK="guardarTrabajo()">GUARDAR TRABAJO</BUTTON>
 </DIV>
 </BODY>
 </HTML>
